@@ -1,0 +1,427 @@
+\documentclass{amsart}
+\usepackage{amssymb,color,xcolor}
+\usepackage{eucal}
+\usepackage{hyperref}
+\usepackage{ifpdf} 
+\usepackage{ff++listings}
+
+\lstset{language=python}
+
+\textwidth = 14cm
+\textheight = 22cm
+\hoffset = -1.cm
+\voffset =-1.5 cm
+\footskip = 1.5 cm 
+
+
+% to use same .tex file for both latex & pdflatex
+    % the following specifies different options to hyperref depending on
+    % whether latex or pdflatex is being run.
+%\ifpdf
+%\usepackage[colorlinks,linkcolor=blue,urlcolor=blue,citecolor=blue,plainpages=false,pdfpagelabels,breaklinks]{hyperref}
+%\else
+%\usepackage[colorlinks,linkcolor=blue,urlcolor=blue,citecolor=blue,plainpages=false,pdfpagelabels,linktocpage]{hyperref}
+%\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage[notcite,notref]{showkeys}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem*{main}{Main Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{claim}{Claim}
+\newtheorem*{notation}{Notation}
+\newtheorem{remark}{Remark}
+
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\numberwithin{equation}{section}
+%%%%%%%%%%%%%
+\newcommand{\e}{\epsilon}
+\newcommand{\pa}{\partial}
+\newcommand{\s}{\sigma}
+\newcommand{\al}{\alpha}
+\newcommand{\la}{\lambda}
+\newcommand{\de}{\delta}
+\newcommand{\f}{\theta^{x,t}_\delta}
+\newcommand{\R}{\mathbb R}
+\newcommand{\N}{\mathbb N}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\C}{\mathbb C}
+\newcommand{\Sn}{\mathbb S^{n-1}}
+\newcommand{\Rn}{\mathbb R^n}
+\newcommand{\RM}{\mathbb R^{n+1}_+}
+\newcommand{\Rm}{\mathbb R^{n+1}}
+\newcommand{\Si}{\mathcal S}
+\newcommand{\An}{\mathcal A}
+\newcommand{\rst}[1]{\ensuremath{{\mathbin\upharpoonright}%
+\raise-.5ex\hbox{$#1$}}}
+ \newcommand{\sgn}{\mathop{\mathrm{sgn}}}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+%%%%%%%%%%%%%%%%%%%%
+\def\d{\partial}
+\def\l{\ell}
+\def \e {\epsilon}
+\def \r {\rho_1}
+\def \om {\Omega}
+\def \o {\omega}
+\def \p {\mathbf{p}}
+\def \q {\mathbf{q}}
+\def \muu {\boldsymbol{\mu}}
+\def \b {\beta}
+\def \F {\mathbf{F}}
+\def \G {\mathbf{G}}
+\def \s {\sigma}
+\def \peso {e^{-\theta t^{-\sigma}}}
+\def \pesodos {e^{-\frac{\theta}{2} t^{-\sigma}}}
+\def \L {\mathcal{L}}
+\def \J {\mathcal{J}}
+\def \M {\mathcal{M}}
+\def \A {\mathcal{A}}
+\def \U {\mathcal{U}}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\let\inf\relax \DeclareMathOperator*\inf{\vphantom{p}inf}
+\begin{document}
+
+
+\section{Module 'mesh'}
+This module is contained in \verb|mesh.py| and used to create a uniform and regular mesh on the \textit{space-time} domain $[0,1]\times[0,T]$; an object of class \verb|Mesh| creates data structures related to this kind of mesh.
+
+\subsection{Class:} \verb|Mesh|
+
+\textit{Class constructor arguments}: \verb|N|, \verb|K|, \verb|T|. These arguments initialize the class data members of the same name below.
+
+\begin{lstlisting} 
+## Example: how to create a object of class Mesh
+####################################
+import mesh as msh
+
+T = 2
+N = 10
+K = 20
+# We create an object of class 'Mesh.
+Th = msh.Mesh(N,K,T)
+
+# Recovering the class data members 'T', 'N' and 'K'.
+print(Th.T) # This prints '2'
+print(Th.N) # This prints '10'
+print(Th.K) # This prints '20'
+\end{lstlisting}
+\textit{Class data members}:
+\begin{itemize}
+\item[1)] \verb|N|: integer number of subdivions of the interval $[0,1]$.
+\item[2)] \verb|K|: integer number of subdivions of the interval $[0,T]$.
+\item[3)] \verb|T|: (real number) length of time interval.
+\item[4)] \verb|DelT|: real number given by the expression \verb|DelT=T/K|.
+\item[5)] \verb|DelX|: real number given by the expression \verb|DelX=1/N|.
+\item[6)] \verb|NbPoints|: number of nodes in the mesh.
+\item[7)]  \verb|Nelem|: number of triangles in the mesh. Is equal to \verb|2NK|.
+\item[8)] \verb|points|: \verb|(NbPoints,2)|-shaped Numpy array of real numbers. Each row contains the
+xy-coordinates of a point in the mesh.
+\item[9)] \verb|connect|: \verb|(Nelem,4)|-shaped Numpy array of integers. This is the so-called {\bf connectivity array}. Each row of this array contains 4 elements of integer type which completely
+determine a triangle of the uniform mesh:
+	\begin{itemize}
+	\item[i)] The first three columns on each row are the indices of the vertices of the
+		triangle. For instance \verb|connect[i,j]| would be the $j$-th $(j=0,1,2)$ point in the
+		$i$-th triangle of the mesh; if we had an object \verb|Th| of class \verb|Mesh| and we wanted to 			return the coordinates of that point, we would only have to write \verb|									Th.points[self.connect[i,j],:]|.
+		On each row of \verb|connect|, the points are ordered counterclokwise.
+	\item[ii)] The 4th item on each row contains information about the boundaries of
+		the triangle. The values of this item can be: \verb|0| (interior triangle), \verb|1| (base 					boundary), \verb|2| (right boundary), \verb|3| (top boundary), \verb|4| (left boundary).
+	\end{itemize}
+\item[10)-13)] \verb|base|: \verb|(N+1,)|-shaped Numpy array of integers. It contains the row-indices of the nodes in \verb|points| that belong to the base boundary. The Numpy arrays \verb|right|, \verb|top| and \verb|left| are analogous and have shapes \verb|(K+1,)|, \verb|(N+1,)| and \verb|(K+1,)| respectively.
+\end{itemize}
+
+\section{Module QuadratureRules}
+
+This module contains a 2D gaussian quadrature rule on the reference triangle $$\hat{T}=\{(x,y)\in \R^2: x+y\leq 1, x,y\in(0,1)\}$$ and a 1D gaussian quadrature rule on the interval $(-1,1)$.
+\begin{itemize}
+\item \verb|gaussRule2D|: \verb|(19,3)|-shaped Numpy array of real numbers. It constains a 19 points gaussian quadrature rule over the reference triangle $\hat{T}$ used in \cite{Meyer}. Each row of \verb|gaussRule2D| corresponds to a gaussian point of the quadrature rule. Each row stores a \verb|(3,)|-shapes Numpy array containing (in this order) the x-coordinate, the y-coordiante and the weight of the gaussian point. The numerical evaluation of this rule was obtained using the MATLAB software developed by  John Burkardt,  available at  \verb|https://people.sc.fsu.edu/~jburkardt/m_src/|
+
+\verb|triangle_dunavant_rule/triangle_dunavant_rule.html|
+\item \verb|gaussRule1D|: \verb|(6,1)|-shaped Numpy array of real numbers. It contains a 6 points gaussian quadrature rule on the interval $(-1,1)$. Each row contains the x-coordinate of the gaussian point and its corresponding weight-
+\end{itemize}
+
+\section{Module HCTMasterFunctions}
+
+\subsection{Class:} \verb|MasterFunctions|
+
+The class \verb|MasterFunctions| has members which consist in arrays containing the evaluation of the master functions $Phi0$, $Phi1$, $Phi2$ and $beta$ and their first and second derivatives on the reference triangle. References for both the master functions and the reference triangle are given in reference \cite{Meyer}.
+
+\textit{Class constructor arguments:} \verb|deg|, mask-type argument, the value by default is 
+
+\verb|deg=[True,True,True,True]|. \verb|deg| must be a list of 4 elements of boolean type, i.e, the possible values for each item in \verb|deg| are \verb|True| or \verb|False|. The values of \verb|deg[i]| activate (if \verb|deg[i]| stores a \verb|True| value) or deactivate (if \verb|deg[i]| stores a \verb|False| value) the initialization of:
+\begin{itemize}
+\item \verb|i=0|: the class data memebrs \verb|gPhi01d|,...,\verb|gPhi21d|, \verb|gbeta1d|.
+\item \verb|i=1|: the class data memebrs \verb|gPhi02d|,...,\verb|gPhi22d|, \verb|gbeta2d|.
+\item \verb|i=2|: the class data memebrs \verb|gDPhi0|,...,\verb|gDPhi2|, \verb|gDbeta|.
+\item \verb|i=3|: the class data memebrs \verb|gD2Phi0|,...,\verb|gD2Phi2|, \verb|gD2beta|.
+\end{itemize}
+The initialization is carried out evaluating the Master Functions and the corresponding derivatives activated by \verb|deg| at the specified gaussian points (see the specification fthe class data memebrs below) and storing them in the class data members 1)-16) which are activated by the \verb|deg| mask.
+
+\begin{lstlisting} 
+## Example: how to create a object of class MasterFunctions
+####################################
+import HCTMasterFunctions as mf
+
+eval_mask = [True,True,True,True]
+# We create an object of class MaserFunctions
+MasterFunctionsAtGaussianPoints = mf.MasterFuncions(eval_mask)
+\end{lstlisting}
+
+
+
+\textit{Class data members:}
+\begin{itemize}
+\item[1)-3)]: \verb|gPhi01d|,...,\verb|gPhi21d|: \verb|(N,1,3)|-shaped Numpy arrays of real numbers, where \verb|N| is the number of gaussian points in the 1D quadrature rule imported from the module \verb|QuadratureRules|. These arrays are intended to contain the evaluation of the Master Functions $Phi0$, $Phi1$, $Phi2$ (defined in \cite{Meyer}) at the gaussian points of the 1D gaussian quadrature rule imported from \verb|QuadratureRules|.
+\item[4)] \verb|gbeta1d|: \verb|(N,1)|-shaped Numpy array of real numbers (\verb|N| represents the same number as for class data memebrs 1)-3)).  This array is inteded to store the evaluation of the functions $beta$ (defined in \cite{Meyer}) at the gaussian points of the 1D gaussian quadrature rule imported from \verb|QuadratureRules|. 
+
+\item[5)-7)]: \verb|gPhi02d|,...,\verb|gPhi22d|: \verb|(N,1,3)|-shaped Numpy arrays, where \verb|N| is
+the number of gaussian points in the 2D quadrature rule imported from \verb|QuadratureRules|. Functions analogous to class data memebers 1)-3) but using a 2D gaussian quadrature rule.
+\item[8)] \verb|gbeta2d|: \verb|(N,1)|-shaped Numpy array of real numbers with the same \verb|N| as in 5)-7).
+
+\item[9)-11)]: \verb|gDPhi0|,...,\verb|gDPhi2|: \verb|(N,2,3)|-shaped Numpy arrays of reals numbers, where \verb|N| represents the number of gaussian points in the 1D gaussian quadrature rule imported from \verb|QuadratureRules|. These arrays are inteded to store the evaluation of the gradients of the Master Functions $Phi0$, $Phi1$, $Phi2$ at the gaussian points of the 1D quadrature rule.
+
+\item[12)]: \verb|gDbeta|: \verb|(N,2,1)|-shaped Numpy array of real numbers. \verb|N| is the same as in 9)-11). This array is intended to store the evaluation of the gradient of $beta$ at the gaussian points of the 1D quadrature rule imported from \verb|QuadratureRules|. 
+\end{itemize}
+Observe that the class data members 9)-12) are only used in the numerical approximation of  integrals of the form 
+$$\int_{\partial K\cap\{x=1\}} \partial_x\varphi_i \partial_x\varphi_j,$$
+which are integrals on 1D segments, thus we only need the evaluation of the gradients of Master Functions at the gaussian points of a 1D quadrture rule, but not over a the points of a 2D Quadrature rule.
+\begin{itemize}
+\item[13)-15)]: \verb|gD2Phi0|,...,\verb|gD2Phi2|: \verb|(N,3,3)|-shaped arrays, where \verb|N| is
+the number of gaussian points in the 2D quadrature rule imported from \verb|QuadratureRules|. These arrays are intended to store the second derivatives of the Master Functions $Phi0$, $Phi1$, $Phi2$.
+For example, for fixed \verb|i|,\verb|k|,  \verb|gD2Phi0[i,:,k]| is a \verb|(3,)|-shaped Numpy array containing the evaluation of the $(\partial_{xx},\partial_{yy},\partial_{xy})$-derivatives of the \verb|k|-th component (\verb|k=0,1,2|) of the Master Function $Phi0$ at the \verb|i|-th gaussian point of the 2D gaussian quadrature rule.
+\item[16)]: \verb|gD2beta|  is \verb|(N,3,1)|-shaped array, with \verb|N| the same as in 13)-15). 
+
+\end{itemize}
+
+
+
+
+ Class methods
+The class also contains method corresponding to the master functions  used
+to initialize the class data members
+
+\section{Module rHCTelement} 
+
+The file \verb|rHCTelement.py| contains the definitions of the class \verb|rHCT_FE|, which implements
+methods to compute the local interior and boundary contributions to build the global
+stiffness matrix. See the file \verb|rHCTelement.py| for more explanations.
+
+Each object of class \verb|rHCT_FE| represents an element and contains all the necessary
+information to compute the local contributions to the global stiffness matrix. 
+To initialize an object of class \verb|rHCT_FE| we need the three points that define the element
+given in counterclock-wise order and an evaluation of the master functions
+(see reference \cite{Meyer}) at the gaussian points of a suitable gaussian quadrature rule.
+The \verb|rHCT\_FE| implementation is based in the algorithm given in reference \cite{Meyer}.
+
+\begin{remark}
+For the nonlinear controllability this module should be modified to introduce the
+possibility of solving controllabillity problems associated to wave equations with
+potentials. New arguments should be added to the contructor of the class and to the
+method \verb|InteriorStifness()| to be able to update the potential on each Newton or fixed
+point iteration.
+\end{remark}
+
+
+\subsection{Class:} \verb|rHCT_FE|
+
+\textit{Class constructor arguments}: 
+\begin{itemize}
+\item  \verb|points|: a \verb|(3,2)|-shaped Numpy array of real numbers. Each row represents a vertex of a triangle element and contains the xy-coordinates of the vertex.
+\item \verb|D|: an object of class \verb|HCTMasterFunctions.MasterFunctions|. 
+\begin{remark} The best way to initialize the \verb|MasterFunctions| object \verb|D| used here is by using the mask \verb|eval_mask=[True,True,True,True]| as the argument for constructor of the \verb|MasterFunctions| class. However, a long explanation comes in: observe that, in order to be able to evaluate the necessary integrals to build the stiffness matrix, we need that the mask \verb|eval_mask| used to initialize the object \verb|D| satisfies at least \verb|eval_mask[2]=True| and  \verb|eval_mask[3]=True|, but if we consider a wave equation with a potential, we may need to evaluate the Master Functions themselves (not only their derivatives) at the gaussian points of the 2D quadrature rule, thus in this case it will be necessary to use an \verb|eval_mask| s.t. \verb|eval_mask[1]=True|. In order to evaluate the integrals corresponding to the initial data (left hand side), we will need to evaluate the Master Functions and their first derivatives at the gaussian points of the 1D quadrature rule, thus, it will be necessary to initialize \verb|D| using a mask \verb|\eval_mask| s.t. \verb|\eval_mask[0]=True| and \verb|\eval_mask[1]=True|.
+\end{remark}
+\end{itemize}
+
+\begin{lstlisting} 
+## Example: how to create an object of class rHCT_FE
+####################################
+import HCTMasterFunctions as mf
+import rHCTelement as fe
+import numpy as np
+
+# We create an evaluation of the master functions and 
+# its derivatives at gaussian points
+# see HCTMasterFunctions.py for more info
+D = mf.MasterFunctions([1,1,1,1])
+
+points = np.array([[0,0],[1,0],[0,1])
+Element = fe.rHCT_FE(points, D)
+\end{lstlisting}
+
+\textit{Class methods:}
+
+The main methods in the class \verb|rHCT\_FE| are:
+\begin{itemize}
+\item[1)] \verb|InteriorStiffness()|: This method computes the local contribution to the global stiffness
+matrix corresponding to the integral 
+$\int_K(p_tt-p_xx)(q_tt-q_xx)dxdt$, 
+where K is a triangle in the mesh. It returns an (9,9)-shaped Numpy array.
+
+\item[2)] \verb|BoundaryStiffness(k)|: This method computes the local contribution to the global stiffness
+matrix corresponding to the integral 
+$\int_0^T p_x q_x dt$, 
+where T is the final time. It returns an (9,9)-shaped Numpy array. The argument k is the
+index belonging to {0,1,2} that tells the method on which edge we want to integrate.
+It returns an (9,9)-shaped Numpy array.
+
+\item[3)] \verb|InitPositionMatrix(k)|: This method computes the local contribution to the matrix corresponding to the integrals
+$$\int_0^1 p_t q dx,$$
+where $p$ is $C^1$ a function and $q$ is a piecewise-linear and continuous function that interpolates
+the initial position.
+It returns a $(9,3)$-shaped Numpy array. The argument $k\in\{0,1,2\}$
+that tells the method on which edge we want to integrate. It is used to compute the part
+of the right hand side of the linear system arising from the variational formulation.
+
+\item[4)] \verb|InitVelocityMatrix(k)|: similar to InitPositionMatrix(k) but corresponding to the integral
+$\int_0^1 p q dx$ instead. Here, q is supposed to interpolate the initial velocity. 
+\end{itemize}
+
+\begin{lstlisting} 
+## Example: how to compute local contribution to the stiffness 
+# matrix and the RHS matrix
+############################################
+import HCTMasterFunctions as mf
+import rHCTelement as fe
+import numpy as np
+
+
+D = mf.MasterFunctions([1,1,1,1])
+points = np.array([[0,0],[1,0],[0,1])
+Element = fe.rHCT_FE(points, D)
+
+localInterior = Element.InteriorStiffness()
+
+# We now set k=0, this means that the local boundary contribution 
+# to the stiffness matrix will be computed on the 1st edge 
+# (indices run in {0,1,2}) which is the edge opposite to the
+# third point in array 'points', with coordinates (0,0). 
+# That is, the integration is carried out over the edge defined 
+# by the points of coordinates (1,0),(0,1).
+
+k = 0
+localBoundaryInterior = Element.BoundaryStiffness(k)
+
+# To compute the local contribution to the stifdness matrix that will
+# be used to compute the righ hand side, we will integrate over the
+# 3rd edge, corresponding to k = 2, which is defined by the points 
+# of coordinates (0,0), (1,0).
+k = 2
+localPosition = Element.InitPositionMatrix(2)
+\end{lstlisting} 
+
+\section{HCTAssembly}
+
+This module contains the functions \verb|StiffnessAssembly|, \verb|InterpolationP1|, \verb|PosVelAssembly|:
+
+
+\begin{itemize}
+\item \verb|StiffnessAssembly(D,Th)|:  this function returns a SCIPY \verb|sparse.csr_matrix| matrix containing the global stiffness matrix associated to the finite element approximation of the positive definite quadratic form $Q$ given by
+$$Q(q,p)=\int_{Q_T}(q_{tt}-q_{xx})(p_{tt}-p_{xx})\,dx\,dt+\int_0^Tq_x(1,t)p_x(1,t)\,dt. $$
+
+The arguments for \verb|StiffnessAssembly(D,Th)| are:
+\begin{itemize}
+\item[1)] \verb|D|: an \verb|HCTMasterFunctions.MasterFunctions| type object.
+\item[2)] \verb|Th|: a \verb|mesh.Mesh| type object
+\end{itemize}
+
+\begin{remark}
+For the non-linear controllability problem, new arguments should be added to 
+the method \verb|StiffnessAssembly| so that we can choose a potential in the considered wave
+operator.
+\end{remark}
+
+\item \verb|InterpolationP1|: this function returns a \verb|(N+1,)|-shaped Numpy array with the $P_1$ interpolation of an initial data given by a 
+function whose analytic expression is known.
+
+The arguments are
+\begin{itemize}
+\item[1)] \verb|f|: an univariate  Numpy-vectorized function defined in the interval $(0,1)$ 
+\item[2)] \verb|N|: the number of spatial subdivisions at time $t=0$.
+
+\end{itemize}
+
+
+\item \verb|PosVelassembly|: this function computes the matrices corresponding to the integrals
+$\int_0^1 \partial_y\varphi_i \varphi_jdx$ and $\int_0^1 \varphi_i \varphi_jdx$, used to aproximate
+the integrals
+$$\int_0^1 \partial_y\varphi_i p_0,\ \ \int_0^1 \varphi_i p_1dx$$
+for each $\varphi_i$ in the space of finite elements considered (the rHCT based space $\Phi_h$ in the notation of \cite{CindeaMunch}). This function returns two SCIPY \verb|sparse.matrix_csr| matrices \verb|Lp| and \verb|Lv|, which correspond to $\int_0^1 \partial_y\varphi_i \varphi_jdx$ and $\int_0^1 \varphi_i \varphi_jdx$ respectively.
+\end{itemize}
+
+\begin{remark}
+The implementation of \verb|StiffnessAssembly| and \verb|PosVelAssembly| depends on the fact that the mesh is a regular and uniform mesh, so each time that we call a method which returns a local boundary contribution to the global stiffness matrix, we know on which edge of the subtriangle we have to integrate and we pass it as the argument \verb|k| to the method \verb|BoundaryStiffness|, \verb|InitPositionMatrix| or \verb|InitVelocityMatrix|. In order to work with unstructured meshes, we should first identify (using the information provided by the mesh generator) the subtriangle whose exterior boundary will support the 1D integration so that we can pass the correct \verb|k| argument to \verb|BoundaryStiffness|, \verb|InitPositionMatrix| or \verb|InitVelocityMatrix|.
+\end{remark}
+
+\section{WaveTimeMarching}
+
+The module \verb|WaveTimeMarching| contains some implicit and explicit time marching methods based on space and time finite differences to solve the following problems:
+\begin{equation} \label{non_hom_init_boundary_value_problem}
+\begin{cases}
+L y +\lambda f(y)=0,& \text{in } Q_T=(0,L)\times(0,T),\\
+y(0,t)=0,\ y(L,t)=v(t),& \text{in }(0,T),\\
+y(0)=y_0,\ y_t(0)=y_1,& \text{in }(0,L).
+\end{cases}
+\end{equation}
+
+\begin{equation}\label{forward_control_system}
+\begin{cases}
+L y+\lambda f(y)=0,& \text{in } Q_T,\\
+y(0,t)=0,\ y(L,t)=q_x(L,t),& t\in(0,T)\\
+L_{\lambda f'(y)} q = by,& \text{in } Q_T,\\
+q(0,t)=q(L,t)=0,& t\in(0,T),\\
+y(0)=y_0,\ y_t(0)=y_1,\ q(0)=q_0,\ q_t(0)=q_1.
+\end{cases}
+\end{equation}
+
+The functions in this module are:
+\begin{itemize}
+\item[i)] \verb|Implicit(u0, u1, boundaryData, f, L, T, N, K)|: it returns a \verb|(K+1,N+1)| shaped Numpy array
+containing  a numerical approximation of the solution to \eqref{non_hom_init_boundary_value_problem} computed using an implicit method.
+The arguments are:
+\begin{itemize}
+\item[1)] \verb|u0|: a (\verb|N+1|,)-shaped Numpy array containing a sample of $y_0$ in  \eqref{non_hom_init_boundary_value_problem} in the interval $(0,L)$.
+\item[2)] \verb|u1|: a (\verb|N+1|,)-shaped Numpy array containing a sample of $y_1$ in  \eqref{non_hom_init_boundary_value_problem} in the interval $(0,L)$.
+\item[3)] \verb|boundaryData|: a \verb|K+1| Numpy array containing a sample of $v$ in \eqref{non_hom_init_boundary_value_problem} in the interval $(0,T)$.
+\item[4)] \verb|f|: the nonlinear function in \eqref{non_hom_init_boundary_value_problem}.
+\item[5)] \verb|L|: a real number representing $L$ in \eqref{non_hom_init_boundary_value_problem}.
+\item[6)] \verb|T|: a real number representing $T$ in \eqref{non_hom_init_boundary_value_problem}.
+\item[7)] \verb|K|: the number of time steps (an integer number), $\Delta t= T/K$.
+\item[8)] \verb|N|: the number of space steps (an integer number), $\Delta x = 1/N$.
+\end{itemize}
+\item[ii)] \verb|Explicit(u0, u1, boundaryData, f, L, T, N, K)|: it returns a \verb|(K+1,N+1)| shaped Numpy array containing  a numerical approximation of the solution to \eqref{non_hom_init_boundary_value_problem} computed using an explicit method. The arguments are the same as for the function \verb|Explicit|.
+
+
+
+The file \verb|WaveTimeMarching_test.py| contains some example of usage, where the boundary
+and initial conditions used to test the functions \verb|Implicit|, \verb|Explicit|,
+\verb|ImplicitSystem| and \verb|ExplicitSystem| are taken to check the Example 1 in the reference \cite{CindeaMunch}.
+
+
+\end{itemize}
+
+
+The module also contains the function \verb|toGrid| which take as argument the solution of the 
+linear  system associated to the variational formulation and puts it into a $(K+1)\times (N+1)$ Numpy
+array, where $K$ and $N$ are the number of time and spatial steps respectively. 
+This representation of the solution is more convenient for the graphical representation of 
+the solution to the linear control system; but it is also necessary to interface the 
+controllability problem and the direct problem at each Newton iteration.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+
+\bibitem{CindeaMunch} N. Cindea, A. M\"unch, \newblock{A mixed formulation for the direct approximation of the control of minimal L2 norm for linear type wave equations.}{Calcolo}
+
+\bibitem{Meyer} A. Meyer. \newblock{A simplified calculation of reduced HCT-basis in FE context.} {Computational Methods in Applied Mathematics.}
+
+
+\end{thebibliography}
+
+
+\end{document} 
