@@ -19,10 +19,10 @@ def SpaceTimePlot(y, L, T, N, K):
     ax.tick_params(axis='both', which='major', pad=10)
 
     for tick in ax.xaxis.get_major_ticks():
-                    tick.label.set_fontsize(12)
+        tick.label1.set_fontsize(12)
 
     for tick in ax.yaxis.get_major_ticks():
-                    tick.label.set_fontsize(12)
+        tick.label1.set_fontsize(12)
 
     ax.set_xlabel('x',fontsize=20)
     ax.set_ylabel('t',fontsize=20)
