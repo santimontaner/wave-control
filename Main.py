@@ -5,12 +5,12 @@ from timeit import default_timer as timer
 # Own packages
 import mesh
 import HCTAssembly as HCT
-import HCTMasterFunctions as mf
+import HctMasterFunctions as mf
 import WaveTimeMarching as wtm
 import Plots
 
 # Evaluation of master functions at gaussian points
-D = mf.MasterFunctions([True,True,True,True])
+master_eval = mf.HctMasterFunctions([True,True,True,True])
 
 # Data for the mesh
 T = 2
@@ -30,8 +30,8 @@ print("DelT= ",DelT)
 # that we want to solve
 
 # Stiffness and Load Matrices assembly
-A = HCT.build_stiffness_matrix(Th, D)
-Lp, Lv = HCT.build_initial_conditions_matrix(Th,D)
+A = HCT.build_stiffness_matrix(Th, master_eval)
+Lp, Lv = HCT.build_initial_conditions_matrix(Th,master_eval)
 
 # Interpolation of the L^2 initial data
 f = lambda x: np.sin(2*np.pi*x)

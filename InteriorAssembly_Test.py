@@ -10,7 +10,7 @@ import HCTMasterFunctions as mf
 import TestFunctions as tf
 
 # Evaluation of master functions at gaussian points
-D = mf.MasterFunctions([1,1,1,1])
+D = mf.HctMasterFunctions([1,1,1,1])
 
 # Global Matrix Test
 T = 2

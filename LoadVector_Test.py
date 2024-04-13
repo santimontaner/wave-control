@@ -21,7 +21,7 @@ RboundaryNodes = Th.right_boundary_idx
 TboundaryNodes = Th.left_boundary_idx
 
 # Evaluation of master functions at gaussian points
-D = mf.MasterFunctions([0,0,1,0])
+D = mf.HctMasterFunctions([0,0,1,0])
 
 # Matrix assembly
 Lp = HCT.build_initial_conditions_matrix(Th,D)
