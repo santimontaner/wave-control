@@ -74,8 +74,7 @@ def StiffAssembly(Th: Mesh, D):
 def PosVelAssembly(Th: Mesh, D):
     baseTriangles = Th.base_boundary_elements_idx
     
-    # Position Matrix Assembly
-    Lp = lil_matrix((3*Th.number_of_vertices,2*Th.x_subdivs+1))
+    initial_pos_matrix = lil_matrix((3*Th.number_of_vertices,2*Th.n_x+1))
     # Velocity Matrix Assembly
     Lv = lil_matrix((3*Th.number_of_vertices,2*Th.x_subdivs+1))
 

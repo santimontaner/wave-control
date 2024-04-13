@@ -30,7 +30,7 @@ Lp = HCT.PosVelAssembly(Th,D)
 P = HCT.InitPosInter(lambda x: np.sin(5*np.pi*x),N)
 
 # Plot the interpolated initial datum u_0(x)
-x = np.linspace(0,1,2*Th.x_subdivs+1)
+x = np.linspace(0,1,2*Th.n_x+1)
 plt.plot(x,P)
 plt.show()
 plt.close()
