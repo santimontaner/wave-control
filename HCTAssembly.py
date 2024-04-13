@@ -3,6 +3,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import lil_matrix
 from scipy.sparse import coo_matrix
 from timeit import default_timer as timer
+from mesh import Mesh
 
 # Own packages
 import rHCTelement as fe
@@ -10,11 +11,11 @@ import rHCTelement as fe
 # Assembly of matrix corresponding to
 # \int_{Q_T} b (p_{tt}-p_{xx})(q_{tt}-q_{xx})dxdt + \int_0^T p_xq_x dt
 # for functions p and q vanishing on x=0 and x=1
-def StiffAssembly(Th, D):
-    ConnArr = Th.connect
-    RboundaryNodes = Th.right
-    LboundaryNodes = Th.left
-    Nodes = Th.points
+def StiffAssembly(Th: Mesh, D):
+    ConnArr = Th.connectivity_array
+    RboundaryNodes = Th.right_boundary_idx
+    LboundaryNodes = Th.left_boundary_idx
+    Nodes = Th.vertices
 
     # Number of triangles
     Ntri = ConnArr.shape[0]
@@ -54,7 +55,7 @@ def StiffAssembly(Th, D):
             data[0,81*tri+9*i:81*tri+9*i+9] = Iindex*np.ones(9,dtype=int)
             data[1,81*tri+9*i:81*tri+9*i+9] = localI
         data[2,81*tri:81*(tri+1)] = localA
-    A = coo_matrix((data[2,:],(data[0,:],data[1,:])),shape=(3*Th.NbPoints,3*Th.NbPoints))
+    A = coo_matrix((data[2,:],(data[0,:],data[1,:])),shape=(3*Th.number_of_vertices, 3*Th.number_of_vertices))
     A = lil_matrix(A)
     end = timer()
     print("Matrix assembled! ("+str(end-start)+"s.)")
@@ -70,26 +71,21 @@ def StiffAssembly(Th, D):
     A  = csr_matrix(A)
     return A
 
-def PosVelAssembly(Th, D):
-    ConnArr = Th.connect
-    RboundaryNodes = Th.right
-    LboundaryNodes = Th.left
-    BboundaryNodes = Th.base
-    Nodes = Th.points
-    baseTriangles = Th.baseTriangles
-    NbBaseTri = len(Th.baseTriangles)
+def PosVelAssembly(Th: Mesh, D):
+    baseTriangles = Th.base_boundary_elements_idx
+    
     # Position Matrix Assembly
-    Lp = lil_matrix((3*Th.NbPoints,2*Th.N+1))
+    Lp = lil_matrix((3*Th.number_of_vertices,2*Th.x_subdivs+1))
     # Velocity Matrix Assembly
-    Lv = lil_matrix((3*Th.NbPoints,2*Th.N+1))
+    Lv = lil_matrix((3*Th.number_of_vertices,2*Th.x_subdivs+1))
 
     print(baseTriangles.shape)
     for triIndex in baseTriangles:
-        triangle = ConnArr[triIndex]
-        points = np.array([Th.points[triangle[0]],
-                           Th.points[triangle[1]],
-                           Th.points[triangle[2]]])
-        El = fe.rHCT_FE(points, D)
+        triangle = Th.connectivity_array[triIndex]
+        vertices = np.array([Th.vertices[triangle[0]],
+                           Th.vertices[triangle[1]],
+                           Th.vertices[triangle[2]]])
+        El = fe.rHCT_FE(vertices, D)
         # on the bottom boundary we always integrate over the 3rd subtriangle,
         # which corresponds to k=2, thus, we set:
         localLp = El.InitPositionMatrix(2)

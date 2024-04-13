@@ -3,7 +3,7 @@ import scipy.sparse.linalg as la
 import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 # Own packages
-import mesh as msh
+import mesh
 import HCTAssembly as HCT
 import HCTMasterFunctions as mf
 import WaveTimeMarching as wtm
@@ -13,13 +13,13 @@ import Plots
 D = mf.MasterFunctions([True,True,True,True])
 
 # Data for the mesh
-T = 2.2
-N = 40
+T = 2
+N = 30
 K = int(2.2*N)
 DelX = 1/N
 DelT = T/K
 # Creation of the mesh
-Th = msh.Mesh(N, K, T)
+Th = mesh.Mesh(N, K, T)
 
 print("Uniform mesh dimension: [N,K]=["+str(N)+","+str(K)+"]")
 print("T= ",T)
@@ -50,14 +50,14 @@ plt.close()
 F1 = -Lp.dot(P)
 F2 = Lv.dot(Q)
 # Homogeneous Dirichlet boundary conditions
-F1[3*Th.right]=0
-F1[3*Th.left]=0
-F1[3*Th.right+2]=0
-F1[3*Th.left+2]=0
-F2[3*Th.right]=0
-F2[3*Th.left]=0
-F2[3*Th.right+2]=0
-F2[3*Th.left+2]=0
+F1[3*Th.right_boundary_idx]=0
+F1[3*Th.left_boundary_idx]=0
+F1[3*Th.right_boundary_idx+2]=0
+F1[3*Th.left_boundary_idx+2]=0
+F2[3*Th.right_boundary_idx]=0
+F2[3*Th.left_boundary_idx]=0
+F2[3*Th.right_boundary_idx+2]=0
+F2[3*Th.left_boundary_idx+2]=0
 
 # Linear Solver
 start= timer()

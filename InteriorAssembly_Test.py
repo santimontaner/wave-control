@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 
 # Own packages
-import mesh as msh
+import mesh as mesh
 import HCTAssembly as HCT
 import HCTMasterFunctions as mf
 import TestFunctions as tf
@@ -22,20 +22,20 @@ DelT = T/K
 b = 1
 
 # Creation of the mesh
-Th = msh.Mesh(N, K, T)
+Th = mesh.Mesh(N, K, T)
 # Matrix assembly
 A = HCT.StiffAssembly(Th,D,b)
 print("Global Matrix Test:")
 # Interpolation of the test functions (Global Matrix)
-P = np.zeros((3*Th.NbPoints,1))
-Q = np.zeros((3*Th.NbPoints,1))
+P = np.zeros((3*Th.number_of_vertices,1))
+Q = np.zeros((3*Th.number_of_vertices,1))
 
 # tf.p4, tf.p4x, tf.p4y are defined in in TestFunctions.py and vanish on x=0,1.
 f = tf.p4
 fx = tf.p4x
 fy = tf.p4y
 
-for i, point in enumerate(Th.points):
+for i, point in enumerate(Th.vertices):
     x = point[0]
     y = point[1]
     P[3*i:3*i+3,0] = [f(x,y),fx(x,y),fy(x,y)]

@@ -10,7 +10,7 @@
 # Title: "something on quadrature rules"
 
 import numpy as np
-import mesh as msh
+import mesh as mesh
 import QuadratureRules as qr
 #import weight as carleman
 
