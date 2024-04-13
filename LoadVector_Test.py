@@ -24,7 +24,7 @@ TboundaryNodes = Th.left_boundary_idx
 D = mf.MasterFunctions([0,0,1,0])
 
 # Matrix assembly
-Lp = HCT.PosVelAssembly(Th,D)
+Lp = HCT.build_initial_conditions_matrix(Th,D)
 
 # Interpolation of the L^2 initial data u_0(x)
 P = HCT.InitPosInter(lambda x: np.sin(5*np.pi*x),N)

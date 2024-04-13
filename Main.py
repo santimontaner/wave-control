@@ -30,8 +30,8 @@ print("DelT= ",DelT)
 # that we want to solve
 
 # Stiffness and Load Matrices assembly
-A = HCT.StiffAssembly(Th, D)
-Lp, Lv = HCT.PosVelAssembly(Th,D)
+A = HCT.build_stiffness_matrix(Th, D)
+Lp, Lv = HCT.build_initial_conditions_matrix(Th,D)
 
 # Interpolation of the L^2 initial data
 f = lambda x: np.sin(2*np.pi*x)

@@ -8,7 +8,6 @@ import mesh as mesh
 import HCTAssembly as HCT
 import HCTMasterFunctions as mf
 import TestFunctions as tf
-import rHCTelement as HCTel
 
 # Evaluation of master functions at gaussian points
 D = mf.MasterFunctions([1,1,1,1])
@@ -24,7 +23,7 @@ b = 1
 # Creation of the mesh
 Th = mesh.Mesh(N, K, T)
 # Matrix assembly
-A = HCT.StiffAssembly(Th,D,b)
+A = HCT.build_stiffness_matrix(Th,D,b)
 print("Global Matrix Test:")
 # Interpolation of the test functions (Global Matrix)
 P = np.zeros((3*Th.number_of_vertices,1))
