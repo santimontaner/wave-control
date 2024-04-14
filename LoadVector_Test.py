@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # Own modules
 import mesh as mesh
 import TestFunctions as tf
-import HCTAssembly as HCT
+import HctAssemblyMatrix as HCT
 import HCTMasterFunctions as mf
 
 N = 800

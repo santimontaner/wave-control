@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 # Own packages
 import mesh
-import HCTAssembly as HCT
+import HctAssemblyMatrix as HCT
 import HctMasterFunctions as mf
 import WaveTimeMarching as wtm
 import Plots
@@ -14,7 +14,7 @@ master_eval = mf.HctMasterFunctions([True,True,True,True])
 
 # Data for the mesh
 T = 2
-N = 30
+N = 20
 K = int(2.2*N)
 DelX = 1/N
 DelT = T/K

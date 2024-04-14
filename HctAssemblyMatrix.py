@@ -10,13 +10,10 @@ from HctMasterFunctions import HctMasterFunctions
 
 logger = logging.getLogger(__name__)
 
-# Assembly of matrix corresponding to
-# \int_{Q_T} b (p_{tt}-p_{xx})(q_{tt}-q_{xx})dxdt + \int_0^T p_xq_x dt
-# for functions p and q vanishing on x=0 and x=1
 def build_stiffness_matrix(Th: Mesh, master_eval: HctMasterFunctions):
     """
     Assembly of matrix corresponding to
-    \int_{Q_T} b (p_{tt}-p_{xx})(q_{tt}-q_{xx})dxdt + \int_0^T p_xq_x dt
+    int_{Q_T} b (p_{tt}-p_{xx})(q_{tt}-q_{xx})dxdt + int_0^T p_xq_x dt
     for functions p and q vanishing on x=0 and x=1
     """    
     number_of_triangles = Th.connectivity_array.shape[0]

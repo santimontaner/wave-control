@@ -5,7 +5,7 @@ from timeit import default_timer as timer
 
 # Own packages
 import mesh as mesh
-import HCTAssembly as HCT
+import HctAssemblyMatrix as HCT
 import HCTMasterFunctions as mf
 import TestFunctions as tf
 
