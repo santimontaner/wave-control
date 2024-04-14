@@ -13,8 +13,8 @@
 import numpy as np
 from numpy.linalg import norm
 import numpy.typing as npt
-from . import mesh as mesh
-from . import QuadratureRules as qr
+from .. import mesh as mesh
+from .. import QuadratureRules as qr
 from .HctMasterFunctions import HctMasterFunctions
 
 class HctElementMatrixBuilder:
@@ -52,14 +52,14 @@ class HctElementMatrixBuilder:
 
     @staticmethod
     def _calculate_tri_edges(vertices):
-        tri_edges = np.empty((3,2))
+        tri_edges = np.zeros((3,2))
         tri_edges[0,:] = vertices[2,:] - vertices[1,:]
         tri_edges[1,:] = vertices[0,:] - vertices[2,:]
         tri_edges[2,:] = -(tri_edges[0,:] + tri_edges[1,:])
         return tri_edges
         
     def _calculate_interior_normals(self):
-        in_normals = np.empty((3,2))
+        in_normals = np.zeros((3,2))
         for j in range(3):
             jp, jm = self._rotate_index(j)
             in_normals[j,:] = (self._tri_edges[jp,:] - self._tri_edges[jm,:])/3
@@ -72,11 +72,11 @@ class HctElementMatrixBuilder:
         return next, prev    
 
     def _initialize(self):
-        self._b = np.empty((3,3,3,1))
-        self._M = np.empty((3,3,3))
-        t = np.empty((3,3))
-        T = np.empty((3,3,3))
-        S = np.empty((3,3))
+        self._b = np.zeros((3,3,3,1))
+        self._M = np.zeros((3,3,3))
+        t = np.zeros((3,3))
+        T = np.zeros((3,3,3))
+        S = np.zeros((3,3))
         for k in range(3):
             S[k,0] = 3
             S[k,1:] = self._in_normals[k,:]
@@ -104,7 +104,7 @@ class HctElementMatrixBuilder:
 
     def _calculate_hessian(self, k, km, kp, H):
         number_of_nodes = qr.gauss_2d.shape[0]
-        DD  = np.empty((number_of_nodes, 3, 9))
+        DD  = np.zeros((number_of_nodes, 3, 9))
         DD1 = np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[k]))
         DD2 = (
                 np.matmul(self.ev.gD2Phi1, H)
@@ -123,7 +123,7 @@ class HctElementMatrixBuilder:
 
     def build_interior(self) -> np.ndarray:
         number_of_nodes = qr.gauss_2d.shape[0]
-        quad_weights = np.empty((number_of_nodes, 1))        
+        quad_weights = np.zeros((number_of_nodes, 1))        
         quad_weights[:,0] = qr.gauss_2d[:,2]
         
         K = np.zeros((9,9))
@@ -162,7 +162,7 @@ class HctElementMatrixBuilder:
         H[1:,1:] = np.transpose(J)
         G = np.transpose(np.linalg.inv(J))
         
-        D  = np.empty((N,2,9))
+        D  = np.zeros((N,2,9))
         D[:,:,3*edge_tri_idx:3*edge_tri_idx+3  ] = np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[edge_tri_idx]))
         D[:,:,3*kp:3*kp+3] = (
               np.matmul(self.ev.gDPhi1, H)                           

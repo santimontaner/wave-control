@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 # Own packages
 from wavecontrol import mesh
-from wavecontrol import HctAssemblyMatrix as HCT
-from wavecontrol import HctMasterFunctions as mf
+from wavecontrol.hct import HctAssemblyMatrix as HCT
+from wavecontrol.hct import HctMasterFunctions as mf
 from wavecontrol import WaveTimeMarching as wtm
 from wavecontrol import Plots
 

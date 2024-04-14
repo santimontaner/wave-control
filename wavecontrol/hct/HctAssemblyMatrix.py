@@ -4,7 +4,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import lil_matrix
 from scipy.sparse import coo_matrix
 
-from .mesh import Mesh
+from ..mesh import Mesh
 from . import HctElementMatrixBuilder as fe
 from .HctMasterFunctions import HctMasterFunctions
 
@@ -29,9 +29,9 @@ def build_stiffness_matrix(Th: Mesh, master_eval: HctMasterFunctions):
     # 1st row: 'i' indices
     # 2nd row: 'j' indices
     # 3rd row: (i,j) element of the stiffness matrix
-    data = np.empty((3, number_of_triangles*81), order='F')    
-    vertices = np.empty((3,2))
-    elem_indices = np.empty(9, dtype=int)
+    data = np.zeros((3, number_of_triangles*81), order='F')    
+    vertices = np.zeros((3,2))
+    elem_indices = np.zeros(9, dtype=int)
     
     for triangle_idx, triangle in enumerate(Th.connectivity_array):
         vertices[0,:] = Th.vertices[triangle[0],:]

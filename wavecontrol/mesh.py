@@ -29,7 +29,7 @@ class Mesh:
         self.base_boundary_elements_idx = np.arange(1, 2 * (n_x), 2, dtype=int)
 
     def _initialize_vertices(self):
-        self.vertices = np.empty(((self.n_x + 1) * (self.n_y + 1), 2))
+        self.vertices = np.zeros(((self.n_x + 1) * (self.n_y + 1), 2))
 
         for index_y in range(self.n_y + 1):
             for index_x in range(self.n_x + 1):
@@ -40,7 +40,7 @@ class Mesh:
         return self._connectivity_array
 
     def _initialize_connectivity_array(self):
-        self._connectivity_array = np.empty((self.number_of_elements, 4), dtype=int)
+        self._connectivity_array = np.zeros((self.number_of_elements, 4), dtype=int)
 
         for k in range(self.n_y):
             for n in range(self.n_x):
