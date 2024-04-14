@@ -4,9 +4,9 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import lil_matrix
 from scipy.sparse import coo_matrix
 
-from mesh import Mesh
-import HctElementMatrixBuilder as fe
-from HctMasterFunctions import HctMasterFunctions
+from .mesh import Mesh
+from . import HctElementMatrixBuilder as fe
+from .HctMasterFunctions import HctMasterFunctions
 
 logger = logging.getLogger(__name__)
 

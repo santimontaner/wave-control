@@ -3,11 +3,11 @@ import scipy.sparse.linalg as la
 import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 # Own packages
-from wavecontrol import mesh
-from wavecontrol import HctAssemblyMatrix as HCT
-from wavecontrol import HctMasterFunctions as mf
-from wavecontrol import WaveTimeMarching as wtm
-from wavecontrol import Plots
+import mesh
+import HctAssemblyMatrix as HCT
+import HctMasterFunctions as mf
+import WaveTimeMarching as wtm
+import Plots
 
 # Evaluation of master functions at gaussian points
 master_eval = mf.HctMasterFunctions([True,True,True,True])

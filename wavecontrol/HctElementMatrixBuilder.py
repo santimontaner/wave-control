@@ -13,12 +13,13 @@
 import numpy as np
 from numpy.linalg import norm
 import numpy.typing as npt
-import mesh as mesh
-import QuadratureRules as qr
+from . import mesh as mesh
+from . import QuadratureRules as qr
+from .HctMasterFunctions import HctMasterFunctions
 
 class HctElementMatrixBuilder:
     
-    def __init__(self, vertices: npt.ArrayLike, evaluation):        
+    def __init__(self, vertices: npt.ArrayLike, evaluation: HctMasterFunctions):        
         """
         Initialize the HctElementMatrixBuilder object with the given vertices and evaluation object.
 

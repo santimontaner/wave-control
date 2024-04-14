@@ -3,7 +3,7 @@ import scipy.sparse.linalg as la
 import math as math
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
-from matrix import *
+from .matrix import *
 
 def Implicit(y0,y1,boundaryData,f, L, T, N, K):
     # Spatial discretization step

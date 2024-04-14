@@ -1,6 +1,5 @@
 import numpy as np
-import QuadratureRules as qr
-
+from . import QuadratureRules as qr
 
 class HctMasterFunctions:
     
