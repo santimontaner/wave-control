@@ -5,12 +5,12 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import coo_matrix
 
 from ..mesh import Mesh
-from . import HctElementMatrixBuilder as fe
-from .HctMasterFunctions import HctMasterFunctions
+from . import element_builder as fe
+from .master_functions import HctMasterFunctions
 
 logger = logging.getLogger(__name__)
 
-def build_stiffness_matrix(Th: Mesh, master_eval: HctMasterFunctions):
+def build_stiffness(Th: Mesh, master_eval: HctMasterFunctions):
     """
     Assembly of matrix corresponding to
     int_{Q_T} b (p_{tt}-p_{xx})(q_{tt}-q_{xx})dxdt + int_0^T p_xq_x dt
@@ -66,7 +66,7 @@ def build_stiffness_matrix(Th: Mesh, master_eval: HctMasterFunctions):
         matrix[3*local_idx+2,3*local_idx+2] = 1
     return csr_matrix(matrix)
 
-def build_initial_conditions_matrix(Th: Mesh, master_eval):
+def build_initial_conditions(Th: Mesh, master_eval):
     base_triangles = Th.base_boundary_elements_idx
     
     initial_pos_matrix = lil_matrix((3*Th.number_of_vertices, 2*Th.n_x+1))
@@ -89,13 +89,13 @@ def build_initial_conditions_matrix(Th: Mesh, master_eval):
     initial_vel_matrix = csr_matrix(initial_vel_matrix)
     return initial_pos_matrix, initial_vel_matrix
 
-def InterpolationP1(f,N):
-    DelX = 1/N
-    P = np.zeros((2*N+1,1))
-    for i in range(0,N):
-        x1 = i*DelX
-        x2 = x1+DelX*0.5
+def interpolation_P1(f, n_x):
+    del_x = 1/n_x
+    P = np.zeros((2*n_x+1,1))
+    for i in range(0,n_x):
+        x1 = i*del_x
+        x2 = x1+del_x*0.5
         P[2*i] = f(x1)
         P[2*i+1] = f(x2)
-    P[2*N] = f(N*DelX)
+    P[2*n_x] = f(n_x*del_x)
     return P

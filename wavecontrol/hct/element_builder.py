@@ -15,7 +15,7 @@ from numpy.linalg import norm
 import numpy.typing as npt
 from .. import mesh as mesh
 from .. import QuadratureRules as qr
-from .HctMasterFunctions import HctMasterFunctions
+from .master_functions import HctMasterFunctions
 
 class HctElementMatrixBuilder:
     

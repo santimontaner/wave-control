@@ -6,7 +6,7 @@ import numpy as np
 # in reference [1]. It was obtained using the MATLAB software developed by  John Burkardt,
 # available at
 # https://people.sc.fsu.edu/~jburkardt/m_src/triangle_dunavant_rule/triangle_dunavant_rule.html
-# It is stored as a 19x3 matrix called 'gaussRule2D'.
+# It is stored as a 19x3 matrix called 'gauss_2d'.
 
 # The 1D Quadrature Rule is a six points quadrature rule over the interval [-1,1]
 
@@ -16,9 +16,6 @@ import numpy as np
 # Author: Arnd Meyer
 # Title: A simplified calculation of reduced HCT-basis in FE context
 # Journal: Computational Methods in Applied Mathematics
-
-#
-
 
 ### 2D Quadrature Rule
 # 1st and 2nd columns are xy-coordinates of gaussian points, 3rd column is weight
