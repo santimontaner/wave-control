@@ -87,7 +87,6 @@ class HctElementMatrixBuilder:
         C = np.array([1, 0])
         kp, km = self._rotate_index(edge_tri_idx)
         J, H = self._compute_J_H(kp, km)
-        G = np.transpose(np.linalg.inv(J))
 
         D = np.zeros((N, 2, 9))
         D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx +
@@ -95,14 +94,15 @@ class HctElementMatrixBuilder:
         D[:, :, 3 * kp:3 * kp + 3] = (
             np.matmul(self.ev.gDPhi1, H)
             + np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.gDbeta, np.transpose(self._b[edge_tri_idx, kp]))
+            + np.matmul(self.ev.gDbeta, self._b[edge_tri_idx, kp].T)
         )
         D[:, :, 3 * km:3 * km + 3] = (
             np.matmul(self.ev.gDPhi2, H)
             + np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.gDbeta, np.transpose(self._b[edge_tri_idx, km]))
+            + np.matmul(self.ev.gDbeta, self._b[edge_tri_idx, km].T)
         )
 
+        G = np.linalg.inv(J).T
         D = np.matmul(C, np.matmul(G, D))
 
         w = np.sqrt(
@@ -110,14 +110,16 @@ class HctElementMatrixBuilder:
         wD = np.multiply(quad_weights, D)
         return w * np.tensordot(wD, D, axes=(0, 0))
 
-    def build_init_pos(self, k):
+    def build_init_pos(self, k=2):
+        # on the bottom boundary we always integrate over the 3rd subtriangle,
+        # which corresponds to k=2.
         L = np.zeros((9, 3))
         C = np.array([[0, 1]])
         kp, km = self._rotate_index(k)
 
         J, H = self._compute_J_H(kp, km)
-        G = np.transpose(np.linalg.inv(J))
         quad_weights = (qr.gauss_1d + 1) * 0.5
+        G = np.linalg.inv(J).T
 
         for j, gauss in enumerate(quad_weights):
             x, y = gauss[0], 1 - gauss[0]
@@ -128,12 +130,13 @@ class HctElementMatrixBuilder:
             D[:, 3 * kp:3 * kp + 3] = (
                 np.matmul(self.ev.gDPhi1[j], H)
                 + np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.gDbeta[j], np.transpose(self._b[k, kp]))
+                + np.matmul(self.ev.gDbeta[j], self._b[k, kp].T)
             )
+
             D[:, 3 * km:3 * km + 3] = (
                 np.matmul(self.ev.gDPhi2[j], H)
                 + np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.gDbeta[j], np.transpose(self._b[k, km]))
+                + np.matmul(self.ev.gDbeta[j], self._b[k, km].T)
             )
 
             D0 = np.zeros((1, 3))
@@ -141,10 +144,12 @@ class HctElementMatrixBuilder:
 
             D2 = np.matmul(G, D)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
-            L += w * np.matmul(np.transpose(np.matmul(C, D2)), D0)
+            L += w * np.matmul(np.matmul(C, D2).T, D0)
         return L
 
-    def build_init_vel(self, k):
+    def build_init_vel(self, k=2):
+        # on the bottom boundary we always integrate over the 3rd subtriangle,
+        # which corresponds to k=2.
         L = np.zeros((9, 3))
         kp, km = self._rotate_index(k)
 
@@ -155,17 +160,16 @@ class HctElementMatrixBuilder:
             x, y = gauss[0], 1 - gauss[1]
 
             D0 = np.zeros((1, 9))
-            D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gPhi01d[j],
-                                               np.matmul(H, self._M[k]))
+            D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[k]))
             D0[:, 3 * kp:3 * kp + 3] = (
                 np.matmul(self.ev.gPhi11d[j], H)
                 + np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.gbeta1d[j], np.transpose(self._b[k, kp]))
+                + np.matmul(self.ev.gbeta1d[j], self._b[k, kp].T)
             )
             D0[:, 3 * km:3 * km + 3] = (
                 np.matmul(self.ev.gPhi21d[j], H)
                 + np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.gbeta1d[j], np.transpose(self._b[k, km]))
+                + np.matmul(self.ev.gbeta1d[j], self._b[k, km].T)
             )
 
             DP1 = np.zeros((1, 3))
@@ -175,7 +179,7 @@ class HctElementMatrixBuilder:
             L += w * np.matmul(np.transpose(D0), DP1)
         return L
 
-    @staticmethod
+    @ staticmethod
     def _calculate_tri_edges(vertices):
         tri_edges = np.zeros((3, 2))
         tri_edges[0, :] = vertices[2, :] - vertices[1, :]
@@ -191,7 +195,7 @@ class HctElementMatrixBuilder:
                                 self._tri_edges[jm, :]) / 3
         return in_normals
 
-    @staticmethod
+    @ staticmethod
     def _rotate_index(i):
         next = (i + 1) % 3
         prev = (i + 2) % 3
@@ -235,12 +239,12 @@ class HctElementMatrixBuilder:
         DD2 = (
             np.matmul(self.ev.gD2Phi1, H)
             + np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.gD2beta, np.transpose(self._b[k, kp]))
+            + np.matmul(self.ev.gD2beta, self._b[k, kp].T)
         )
         DD3 = (
             np.matmul(self.ev.gD2Phi2, H)
             + np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.gD2beta, np.transpose(self._b[k, km]))
+            + np.matmul(self.ev.gD2beta, self._b[k, km].T)
         )
         DD[:, :, 3 * k:3 * k + 3] = DD1
         DD[:, :, 3 * kp:3 * kp + 3] = DD2
@@ -251,5 +255,5 @@ class HctElementMatrixBuilder:
         J = np.column_stack((self._in_normals[kp, :], self._in_normals[km, :]))
         H = np.zeros((3, 3))
         H[0, 0] = 1
-        H[1:, 1:] = np.transpose(J)
+        H[1:, 1:] = J.T
         return J, H

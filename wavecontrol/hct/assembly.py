@@ -29,7 +29,7 @@ def build_stiffness(Th: Mesh, master_eval: HctMasterFunctions):
 
     # 1st row: 'i' indices
     # 2nd row: 'j' indices
-    # 3rd row: (i,j) element of the stiffness matrix
+    # 3rd row: (i, j) element of the stiffness matrix
     data = np.zeros((3, number_of_triangles * 81), order='F')
     vertices = np.zeros((3, 2))
     elem_indices = np.zeros(9, dtype=int)
@@ -69,23 +69,22 @@ def build_stiffness(Th: Mesh, master_eval: HctMasterFunctions):
 
 
 def build_initial_conditions(Th: Mesh, master_eval):
-    base_triangles = Th.base_boundary_elements_idx
-
     initial_pos_matrix = lil_matrix((3 * Th.number_of_vertices, 2 * Th.n_x + 1))
     initial_vel_matrix = lil_matrix((3 * Th.number_of_vertices, 2 * Th.n_x + 1))
 
-    for triangle_idx in base_triangles:
+    for triangle_idx in Th.base_boundary_elements_idx:
         triangle = Th.connectivity_array[triangle_idx]
-        vertices = np.array([Th.vertices[triangle[0]], Th.vertices[triangle[1]], Th.vertices[triangle[2]]])
+        vertices = Th.get_triangle_vertices(triangle)
+
         matrix_builder = fe.HctElementMatrixBuilder(vertices, master_eval)
-        # on the bottom boundary we always integrate over the 3rd subtriangle,
-        # which corresponds to k=2, thus, we set:
-        initial_local_pos_matrix = matrix_builder.build_init_pos(2)
-        initial_local_vel_matrix = matrix_builder.build_init_vel(2)
-        # We allocate the local contribution into the global matrix
+        initial_local_pos_matrix = matrix_builder.build_init_pos()
+        initial_local_vel_matrix = matrix_builder.build_init_vel()
+
         for i in range(3):
-            initial_pos_matrix[3 * triangle[i]:3 * triangle[i] + 3, 2 * triangle[0]:2 * triangle[0] + 2] += initial_local_pos_matrix[3 * i:3 * i + 3, 0:2]
-            initial_vel_matrix[3 * triangle[i]:3 * triangle[i] + 3, 2 * triangle[0]:2 * triangle[0] + 2] += initial_local_vel_matrix[3 * i:3 * i + 3, 0:2]
+            slice_1 = slice(3 * triangle[i], 3 * triangle[i] + 3)
+            slice_2 = slice(2 * triangle[0], 2 * triangle[0] + 2)
+            initial_pos_matrix[slice_1, slice_2] += initial_local_pos_matrix[3 * i:3 * i + 3, 0:2]
+            initial_vel_matrix[slice_1, slice_2] += initial_local_vel_matrix[3 * i:3 * i + 3, 0:2]
 
     initial_pos_matrix = csr_matrix(initial_pos_matrix)
     initial_vel_matrix = csr_matrix(initial_vel_matrix)

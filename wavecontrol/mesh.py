@@ -30,6 +30,9 @@ class Mesh:
         self.left_boundary_idx = (n_x + 1) * (n_y - np.arange(0, n_y + 1, dtype=int))
         self.base_boundary_elements_idx = np.arange(1, 2 * (n_x), 2, dtype=int)
 
+    def get_triangle_vertices(self, triangle):
+        return np.array([self.vertices[triangle[0]], self.vertices[triangle[1]], self.vertices[triangle[2]]])
+
     def _initialize_vertices(self):
         self.vertices = np.zeros(((self.n_x + 1) * (self.n_y + 1), 2))
 
