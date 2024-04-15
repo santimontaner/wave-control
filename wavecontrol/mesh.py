@@ -9,7 +9,7 @@ class TriangleType(Enum):
     Top = 3
     Left = 4
     TopLeft = 6
-    Inteior = 0
+    Interior = 0
 
 
 class Mesh:
@@ -73,7 +73,7 @@ class Mesh:
         elif n == 0 and k == self.n_y - 1:
             return TriangleType.TopLeft
         else:
-            return TriangleType.Inteior
+            return TriangleType.Interior
 
     _type_to_int_map = {
         TriangleType.Base: 1,
@@ -82,7 +82,7 @@ class Mesh:
         TriangleType.Top: 3,
         TriangleType.Left: 4,
         TriangleType.TopLeft: 6,
-        TriangleType.Inteior: 0
+        TriangleType.Interior: 0
     }
 
     def map_int_to_triangle_type(self, type: int) -> TriangleType:
