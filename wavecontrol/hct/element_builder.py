@@ -114,19 +114,19 @@ class HctElementMatrixBuilder:
         # on the bottom boundary we always integrate over the 3rd subtriangle,
         # which corresponds to k=2.
         L = np.zeros((9, 3))
-        C = np.array([[0, 1]])
         kp, km = self._rotate_index(k)
 
         J, H = self._compute_J_H(kp, km)
         quad_weights = (qr.gauss_1d + 1) * 0.5
+
         G = np.linalg.inv(J).T
+        C = np.array([[0, 1]])
 
         for j, gauss in enumerate(quad_weights):
             x, y = gauss[0], 1 - gauss[0]
 
             D = np.zeros((2, 9))
-            D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gDPhi0[j],
-                                              np.matmul(H, self._M[k]))
+            D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[k]))
             D[:, 3 * kp:3 * kp + 3] = (
                 np.matmul(self.ev.gDPhi1[j], H)
                 + np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[kp]))
@@ -157,7 +157,7 @@ class HctElementMatrixBuilder:
         quad_weights = (qr.gauss_1d + 1) * 0.5
 
         for j, gauss in enumerate(quad_weights):
-            x, y = gauss[0], 1 - gauss[1]
+            x, y = gauss[0], 1 - gauss[0]
 
             D0 = np.zeros((1, 9))
             D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[k]))
