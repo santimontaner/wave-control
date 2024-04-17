@@ -89,17 +89,16 @@ class HctElementMatrixBuilder:
         J, H = self._compute_J_H(kp, km)
 
         D = np.zeros((N, 2, 9))
-        D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx +
-            3] = np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[edge_tri_idx]))
+        D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx + 3] = np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[edge_tri_idx]))
         D[:, :, 3 * kp:3 * kp + 3] = (
-            np.matmul(self.ev.gDPhi1, H)
-            + np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.gDbeta, self._b[edge_tri_idx, kp].T)
+            np.matmul(self.ev.d_phi_1, H)
+            + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[kp]))
+            + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, kp].T)
         )
         D[:, :, 3 * km:3 * km + 3] = (
-            np.matmul(self.ev.gDPhi2, H)
-            + np.matmul(self.ev.gDPhi0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.gDbeta, self._b[edge_tri_idx, km].T)
+            np.matmul(self.ev.d_phi_2, H)
+            + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[km]))
+            + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, km].T)
         )
 
         G = np.linalg.inv(J).T
@@ -126,17 +125,17 @@ class HctElementMatrixBuilder:
             x, y = gauss[0], 1 - gauss[0]
 
             D = np.zeros((2, 9))
-            D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[k]))
+            D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[k]))
             D[:, 3 * kp:3 * kp + 3] = (
-                np.matmul(self.ev.gDPhi1[j], H)
-                + np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.gDbeta[j], self._b[k, kp].T)
+                np.matmul(self.ev.d_phi_1[j], H)
+                + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[kp]))
+                + np.matmul(self.ev.d_beta[j], self._b[k, kp].T)
             )
 
             D[:, 3 * km:3 * km + 3] = (
-                np.matmul(self.ev.gDPhi2[j], H)
-                + np.matmul(self.ev.gDPhi0[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.gDbeta[j], self._b[k, km].T)
+                np.matmul(self.ev.d_phi_2[j], H)
+                + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[km]))
+                + np.matmul(self.ev.d_beta[j], self._b[k, km].T)
             )
 
             D0 = np.zeros((1, 3))
@@ -160,16 +159,16 @@ class HctElementMatrixBuilder:
             x, y = gauss[0], 1 - gauss[0]
 
             D0 = np.zeros((1, 9))
-            D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[k]))
+            D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[k]))
             D0[:, 3 * kp:3 * kp + 3] = (
-                np.matmul(self.ev.gPhi11d[j], H)
-                + np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.gbeta1d[j], self._b[k, kp].T)
+                np.matmul(self.ev.phi_1_1d[j], H)
+                + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[kp]))
+                + np.matmul(self.ev.beta_1d[j], self._b[k, kp].T)
             )
             D0[:, 3 * km:3 * km + 3] = (
-                np.matmul(self.ev.gPhi21d[j], H)
-                + np.matmul(self.ev.gPhi01d[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.gbeta1d[j], self._b[k, km].T)
+                np.matmul(self.ev.phi_2_1d[j], H)
+                + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[km]))
+                + np.matmul(self.ev.beta_1d[j], self._b[k, km].T)
             )
 
             DP1 = np.zeros((1, 3))
@@ -235,16 +234,16 @@ class HctElementMatrixBuilder:
     def _calculate_hessian(self, k, km, kp, H):
         number_of_nodes = qr.gauss_2d.shape[0]
         DD = np.zeros((number_of_nodes, 3, 9))
-        DD1 = np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[k]))
+        DD1 = np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[k]))
         DD2 = (
-            np.matmul(self.ev.gD2Phi1, H)
-            + np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.gD2beta, self._b[k, kp].T)
+            np.matmul(self.ev.d2_phi_1, H)
+            + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[kp]))
+            + np.matmul(self.ev.d2_beta, self._b[k, kp].T)
         )
         DD3 = (
-            np.matmul(self.ev.gD2Phi2, H)
-            + np.matmul(self.ev.gD2Phi0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.gD2beta, self._b[k, km].T)
+            np.matmul(self.ev.d2_phi_2, H)
+            + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[km]))
+            + np.matmul(self.ev.d2_beta, self._b[k, km].T)
         )
         DD[:, :, 3 * k:3 * k + 3] = DD1
         DD[:, :, 3 * kp:3 * kp + 3] = DD2
