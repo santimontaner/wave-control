@@ -18,14 +18,6 @@ def build_stiffness(Th: Mesh, master_eval: HctMasterFunctions):
     for functions p and q vanishing on x=0 and x=1
     """
     number_of_triangles = Th.connectivity_array.shape[0]
-    number_of_vertices = Th.vertices.shape[0]
-    number_of_edges = number_of_triangles + number_of_vertices - 1  # Euler formula
-    number_of_nonzero_elems = (2 * number_of_edges + number_of_vertices) * 9
-
-    logger.debug("#triangles = %s", number_of_triangles)
-    logger.debug("#vertices = %s", number_of_vertices)
-    logger.debug("#edges = %s", number_of_edges)
-    logger.debug("#nonzero elements in stiffness matrix = %s", number_of_nonzero_elems)
 
     # 1st row: 'i' indices
     # 2nd row: 'j' indices
