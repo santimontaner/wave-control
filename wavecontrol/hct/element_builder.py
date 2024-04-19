@@ -44,8 +44,7 @@ class HctElementMatrixBuilder:
 
         self._tri_edges = self._calculate_tri_edges(self._vertices)
         self._in_normals = self._calculate_interior_normals()
-        self._out_normals = np.matmul(
-            self._tri_edges, np.transpose(np.array([[0, -1], [1, 0]])))
+        self._out_normals = self._tri_edges @ np.array([[0, -1], [1, 0]]).T
 
         self._jacobian_mat = np.column_stack(
             (self._tri_edges[2], -self._tri_edges[1]))
@@ -71,7 +70,7 @@ class HctElementMatrixBuilder:
             G = np.array([b**2 - d**2, a**2 - c**2, 2 * (c * d - a * b)]) / (self._mu**2)
             DD = self._calculate_hessian(k, km, kp, H)
 
-            wave_operator = np.matmul(G, DD)
+            wave_operator = G @ DD
             wave_op_integral = np.multiply(quad_weights, wave_operator)
             K += self._mu * 0.5 * np.tensordot(wave_op_integral, wave_operator, axes=(0, 0))
         return K
@@ -89,15 +88,14 @@ class HctElementMatrixBuilder:
         J, H = self._compute_J_H(kp, km)
 
         D = np.zeros((N, 2, 9))
-        D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx + 3] = np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[edge_tri_idx]))
-        D[:, :, 3 * kp:3 * kp + 3] = np.matmul(self.ev.d_phi_1, H) + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[kp])) + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, kp].T)
-        D[:, :, 3 * km:3 * km + 3] = np.matmul(self.ev.d_phi_2, H) + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[km])) + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, km].T)
+        D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx + 3] = self.ev.d_phi_0 @ H @ self._M[edge_tri_idx]
+        D[:, :, 3 * kp:3 * kp + 3] = self.ev.d_phi_1 @ H + self.ev.d_phi_0 @ H @ self._M[kp] + self.ev.d_beta @ self._b[edge_tri_idx, kp].T
+        D[:, :, 3 * km:3 * km + 3] = self.ev.d_phi_2 @ H + self.ev.d_phi_0 @ H @ self._M[km] + self.ev.d_beta @ self._b[edge_tri_idx, km].T
 
         G = np.linalg.inv(J).T
-        D = np.matmul(C, np.matmul(G, D))
+        D = C @ G @ D
 
-        w = np.sqrt(
-            np.dot(self._tri_edges[edge_tri_idx, :], self._tri_edges[edge_tri_idx, :])) * 0.5
+        w = np.sqrt(np.dot(self._tri_edges[edge_tri_idx, :], self._tri_edges[edge_tri_idx, :])) * 0.5
         wD = np.multiply(quad_weights, D)
         return w * np.tensordot(wD, D, axes=(0, 0))
 
@@ -117,9 +115,8 @@ class HctElementMatrixBuilder:
             x, y = gauss[0], 1 - gauss[0]
             D = np.zeros((2, 9))
             D0 = self._calc_D_matrices(k, kp, km, H, j, x, y, D, self.ev.d_phi_0, self.ev.d_phi_1, self.ev.d_phi_2, self.ev.d_beta)
-            D2 = np.matmul(G, D)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
-            L += w * np.matmul(np.matmul(C, D2).T, D0)
+            L += w * ((C @ G @ D).T @ D0)
         return L
 
     def build_init_vel(self, k=2):
@@ -136,13 +133,13 @@ class HctElementMatrixBuilder:
             D0 = np.zeros((1, 9))
             DP1 = self._calc_D_matrices(k, kp, km, H, j, x, y, D0, self.ev.phi_0_1d, self.ev.phi_1_1d, self.ev.phi_2_1d, self.ev.beta_1d)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
-            L += w * np.matmul(np.transpose(D0), DP1)
+            L += w * (D0.T @ DP1)
         return L
 
     def _calc_D_matrices(self, k, kp, km, H, j, x, y, D0, phi_0, phi_1, phi_2, beta):
-        D0[:, 3 * k:3 * k + 3] = np.matmul(phi_0[j], np.matmul(H, self._M[k]))
-        D0[:, 3 * kp:3 * kp + 3] = np.matmul(phi_1[j], H) + np.matmul(phi_0[j], np.matmul(H, self._M[kp])) + np.matmul(beta[j], self._b[k, kp].T)
-        D0[:, 3 * km:3 * km + 3] = np.matmul(phi_2[j], H) + np.matmul(phi_0[j], np.matmul(H, self._M[km])) + np.matmul(beta[j], self._b[k, km].T)
+        D0[:, 3 * k:3 * k + 3] = phi_0[j] @ H @ self._M[k]
+        D0[:, 3 * kp:3 * kp + 3] = phi_1[j] @ H + phi_0[j] @ H @ self._M[kp] + beta[j] @ self._b[k, kp].T
+        D0[:, 3 * km:3 * km + 3] = phi_2[j] @ H + phi_0[j] @ H @ self._M[km] + beta[j] @ self._b[k, km].T
         D1 = np.zeros((1, 3))
         D1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
         return D1
@@ -159,8 +156,7 @@ class HctElementMatrixBuilder:
         in_normals = np.zeros((3, 2))
         for j in range(3):
             jp, jm = self._rotate_index(j)
-            in_normals[j, :] = (self._tri_edges[jp, :] -
-                                self._tri_edges[jm, :]) / 3
+            in_normals[j, :] = (self._tri_edges[jp, :] - self._tri_edges[jm, :]) / 3
         return in_normals
 
     @ staticmethod
@@ -198,14 +194,14 @@ class HctElementMatrixBuilder:
             t[j, 1:] += -2 * self._in_normals[j, :]
             for k in range(3):
                 T[j, k, :] = t[k, :]
-            self._M[j] = np.matmul(np.linalg.inv(S), T[j])
+            self._M[j] = np.linalg.inv(S) @ T[j]
 
     def _calculate_hessian(self, k, km, kp, H):
         number_of_nodes = qr.gauss_2d.shape[0]
         DD = np.zeros((number_of_nodes, 3, 9))
-        DD1 = np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[k]))
-        DD2 = np.matmul(self.ev.d2_phi_1, H) + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[kp])) + np.matmul(self.ev.d2_beta, self._b[k, kp].T)
-        DD3 = np.matmul(self.ev.d2_phi_2, H) + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[km])) + np.matmul(self.ev.d2_beta, self._b[k, km].T)
+        DD1 = self.ev.d2_phi_0 @ H @ self._M[k]
+        DD2 = self.ev.d2_phi_1 @ H + self.ev.d2_phi_0 @ H @ self._M[kp] + self.ev.d2_beta @ self._b[k, kp].T
+        DD3 = self.ev.d2_phi_2 @ H + self.ev.d2_phi_0 @ H @ self._M[km] + self.ev.d2_beta @ self._b[k, km].T
         DD[:, :, 3 * k:3 * k + 3] = DD1
         DD[:, :, 3 * kp:3 * kp + 3] = DD2
         DD[:, :, 3 * km:3 * km + 3] = DD3
