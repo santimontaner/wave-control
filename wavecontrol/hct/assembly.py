@@ -1,4 +1,3 @@
-import logging
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse import lil_matrix
@@ -7,8 +6,6 @@ from scipy.sparse import coo_matrix
 from ..mesh import Mesh
 from . import element_builder as fe
 from .master_functions import HctMasterFunctions
-
-logger = logging.getLogger(__name__)
 
 
 def build_stiffness(Th: Mesh, master_eval: HctMasterFunctions):
