@@ -149,21 +149,25 @@ class HctElementMatrixBuilder:
         x, y = gauss[0], 1 - gauss[0]
 
         D0 = np.zeros((1, 9))
-        D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[k]))
+        DP1 = self._calc_D_matrices(k, kp, km, H, j, x, y, D0, self.ev.phi_0_1d, self.ev.phi_1_1d, self.ev.phi_2_1d, self.ev.beta_1d)
+        return D0, DP1
+
+    def _calc_D_matrices(self, k, kp, km, H, j, x, y, D0, phi_0, phi_1, phi_2, beta):
+        D0[:, 3 * k:3 * k + 3] = np.matmul(phi_0[j], np.matmul(H, self._M[k]))
         D0[:, 3 * kp:3 * kp + 3] = (
-            np.matmul(self.ev.phi_1_1d[j], H)
-            + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.beta_1d[j], self._b[k, kp].T)
+            np.matmul(phi_1[j], H)
+            + np.matmul(phi_0[j], np.matmul(H, self._M[kp]))
+            + np.matmul(beta[j], self._b[k, kp].T)
         )
         D0[:, 3 * km:3 * km + 3] = (
-            np.matmul(self.ev.phi_2_1d[j], H)
-            + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.beta_1d[j], self._b[k, km].T)
+            np.matmul(phi_2[j], H)
+            + np.matmul(phi_0[j], np.matmul(H, self._M[km]))
+            + np.matmul(beta[j], self._b[k, km].T)
         )
 
-        DP1 = np.zeros((1, 3))
-        DP1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
-        return D0, DP1
+        D1 = np.zeros((1, 3))
+        D1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+        return D1
 
     def _extract_D_D0_matrices(self, k, kp, km, H, j, gauss):
         x, y = gauss[0], 1 - gauss[0]
