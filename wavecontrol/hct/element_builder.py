@@ -161,9 +161,7 @@ class HctElementMatrixBuilder:
 
     @ staticmethod
     def _rotate_index(i):
-        next = (i + 1) % 3
-        prev = (i + 2) % 3
-        return next, prev
+        return (i + 1) % 3, (i - 1) % 3
 
     def _initialize(self):
         self._b = np.zeros((3, 3, 3, 1))
