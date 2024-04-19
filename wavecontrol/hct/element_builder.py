@@ -90,16 +90,8 @@ class HctElementMatrixBuilder:
 
         D = np.zeros((N, 2, 9))
         D[:, :, 3 * edge_tri_idx:3 * edge_tri_idx + 3] = np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[edge_tri_idx]))
-        D[:, :, 3 * kp:3 * kp + 3] = (
-            np.matmul(self.ev.d_phi_1, H)
-            + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, kp].T)
-        )
-        D[:, :, 3 * km:3 * km + 3] = (
-            np.matmul(self.ev.d_phi_2, H)
-            + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, km].T)
-        )
+        D[:, :, 3 * kp:3 * kp + 3] = np.matmul(self.ev.d_phi_1, H) + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[kp])) + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, kp].T)
+        D[:, :, 3 * km:3 * km + 3] = np.matmul(self.ev.d_phi_2, H) + np.matmul(self.ev.d_phi_0, np.matmul(H, self._M[km])) + np.matmul(self.ev.d_beta, self._b[edge_tri_idx, km].T)
 
         G = np.linalg.inv(J).T
         D = np.matmul(C, np.matmul(G, D))
@@ -122,8 +114,9 @@ class HctElementMatrixBuilder:
         C = np.array([[0, 1]])
 
         for j, gauss in enumerate(quad_weights):
-            D, D0 = self._extract_D_D0_matrices(k, kp, km, H, j, gauss)
-
+            x, y = gauss[0], 1 - gauss[0]
+            D = np.zeros((2, 9))
+            D0 = self._calc_D_matrices(k, kp, km, H, j, x, y, D, self.ev.d_phi_0, self.ev.d_phi_1, self.ev.d_phi_2, self.ev.d_beta)
             D2 = np.matmul(G, D)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
             L += w * np.matmul(np.matmul(C, D2).T, D0)
@@ -139,42 +132,20 @@ class HctElementMatrixBuilder:
         quad_weights = (qr.gauss_1d + 1) * 0.5
 
         for j, gauss in enumerate(quad_weights):
-            D0, DP1 = self._extract_D0_DP1(k, kp, km, H, j, gauss)
-
+            x, y = gauss[0], 1 - gauss[0]
+            D0 = np.zeros((1, 9))
+            DP1 = self._calc_D_matrices(k, kp, km, H, j, x, y, D0, self.ev.phi_0_1d, self.ev.phi_1_1d, self.ev.phi_2_1d, self.ev.beta_1d)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
             L += w * np.matmul(np.transpose(D0), DP1)
         return L
 
-    def _extract_D0_DP1(self, k, kp, km, H, j, gauss):
-        x, y = gauss[0], 1 - gauss[0]
-
-        D0 = np.zeros((1, 9))
-        DP1 = self._calc_D_matrices(k, kp, km, H, j, x, y, D0, self.ev.phi_0_1d, self.ev.phi_1_1d, self.ev.phi_2_1d, self.ev.beta_1d)
-        return D0, DP1
-
     def _calc_D_matrices(self, k, kp, km, H, j, x, y, D0, phi_0, phi_1, phi_2, beta):
         D0[:, 3 * k:3 * k + 3] = np.matmul(phi_0[j], np.matmul(H, self._M[k]))
-        D0[:, 3 * kp:3 * kp + 3] = (
-            np.matmul(phi_1[j], H)
-            + np.matmul(phi_0[j], np.matmul(H, self._M[kp]))
-            + np.matmul(beta[j], self._b[k, kp].T)
-        )
-        D0[:, 3 * km:3 * km + 3] = (
-            np.matmul(phi_2[j], H)
-            + np.matmul(phi_0[j], np.matmul(H, self._M[km]))
-            + np.matmul(beta[j], self._b[k, km].T)
-        )
-
+        D0[:, 3 * kp:3 * kp + 3] = np.matmul(phi_1[j], H) + np.matmul(phi_0[j], np.matmul(H, self._M[kp])) + np.matmul(beta[j], self._b[k, kp].T)
+        D0[:, 3 * km:3 * km + 3] = np.matmul(phi_2[j], H) + np.matmul(phi_0[j], np.matmul(H, self._M[km])) + np.matmul(beta[j], self._b[k, km].T)
         D1 = np.zeros((1, 3))
         D1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
         return D1
-
-    def _extract_D_D0_matrices(self, k, kp, km, H, j, gauss):
-        x, y = gauss[0], 1 - gauss[0]
-
-        D = np.zeros((2, 9))
-        D0 = self._calc_D_matrices(k, kp, km, H, j, x, y, D, self.ev.d_phi_0, self.ev.d_phi_1, self.ev.d_phi_2, self.ev.d_beta)
-        return D, D0
 
     @ staticmethod
     def _calculate_tri_edges(vertices):
@@ -233,16 +204,8 @@ class HctElementMatrixBuilder:
         number_of_nodes = qr.gauss_2d.shape[0]
         DD = np.zeros((number_of_nodes, 3, 9))
         DD1 = np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[k]))
-        DD2 = (
-            np.matmul(self.ev.d2_phi_1, H)
-            + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.d2_beta, self._b[k, kp].T)
-        )
-        DD3 = (
-            np.matmul(self.ev.d2_phi_2, H)
-            + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.d2_beta, self._b[k, km].T)
-        )
+        DD2 = np.matmul(self.ev.d2_phi_1, H) + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[kp])) + np.matmul(self.ev.d2_beta, self._b[k, kp].T)
+        DD3 = np.matmul(self.ev.d2_phi_2, H) + np.matmul(self.ev.d2_phi_0, np.matmul(H, self._M[km])) + np.matmul(self.ev.d2_beta, self._b[k, km].T)
         DD[:, :, 3 * k:3 * k + 3] = DD1
         DD[:, :, 3 * kp:3 * kp + 3] = DD2
         DD[:, :, 3 * km:3 * km + 3] = DD3
