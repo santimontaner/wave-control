@@ -173,21 +173,7 @@ class HctElementMatrixBuilder:
         x, y = gauss[0], 1 - gauss[0]
 
         D = np.zeros((2, 9))
-        D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[k]))
-        D[:, 3 * kp:3 * kp + 3] = (
-            np.matmul(self.ev.d_phi_1[j], H)
-            + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[kp]))
-            + np.matmul(self.ev.d_beta[j], self._b[k, kp].T)
-        )
-
-        D[:, 3 * km:3 * km + 3] = (
-            np.matmul(self.ev.d_phi_2[j], H)
-            + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[km]))
-            + np.matmul(self.ev.d_beta[j], self._b[k, km].T)
-        )
-
-        D0 = np.zeros((1, 3))
-        D0[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+        D0 = self._calc_D_matrices(k, kp, km, H, j, x, y, D, self.ev.d_phi_0, self.ev.d_phi_1, self.ev.d_phi_2, self.ev.d_beta)
         return D, D0
 
     @ staticmethod
