@@ -122,24 +122,7 @@ class HctElementMatrixBuilder:
         C = np.array([[0, 1]])
 
         for j, gauss in enumerate(quad_weights):
-            x, y = gauss[0], 1 - gauss[0]
-
-            D = np.zeros((2, 9))
-            D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[k]))
-            D[:, 3 * kp:3 * kp + 3] = (
-                np.matmul(self.ev.d_phi_1[j], H)
-                + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.d_beta[j], self._b[k, kp].T)
-            )
-
-            D[:, 3 * km:3 * km + 3] = (
-                np.matmul(self.ev.d_phi_2[j], H)
-                + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.d_beta[j], self._b[k, km].T)
-            )
-
-            D0 = np.zeros((1, 3))
-            D0[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+            D, D0 = self._extract_D_D0_matrices(k, kp, km, H, j, gauss)
 
             D2 = np.matmul(G, D)
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
@@ -156,27 +139,52 @@ class HctElementMatrixBuilder:
         quad_weights = (qr.gauss_1d + 1) * 0.5
 
         for j, gauss in enumerate(quad_weights):
-            x, y = gauss[0], 1 - gauss[0]
-
-            D0 = np.zeros((1, 9))
-            D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[k]))
-            D0[:, 3 * kp:3 * kp + 3] = (
-                np.matmul(self.ev.phi_1_1d[j], H)
-                + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[kp]))
-                + np.matmul(self.ev.beta_1d[j], self._b[k, kp].T)
-            )
-            D0[:, 3 * km:3 * km + 3] = (
-                np.matmul(self.ev.phi_2_1d[j], H)
-                + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[km]))
-                + np.matmul(self.ev.beta_1d[j], self._b[k, km].T)
-            )
-
-            DP1 = np.zeros((1, 3))
-            DP1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+            D0, DP1 = self._extract_D0_DP1(k, kp, km, H, j, gauss)
 
             w = 0.5 * norm(self._tri_edges[k, :]) * gauss[1]
             L += w * np.matmul(np.transpose(D0), DP1)
         return L
+
+    def _extract_D0_DP1(self, k, kp, km, H, j, gauss):
+        x, y = gauss[0], 1 - gauss[0]
+
+        D0 = np.zeros((1, 9))
+        D0[:, 3 * k:3 * k + 3] = np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[k]))
+        D0[:, 3 * kp:3 * kp + 3] = (
+            np.matmul(self.ev.phi_1_1d[j], H)
+            + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[kp]))
+            + np.matmul(self.ev.beta_1d[j], self._b[k, kp].T)
+        )
+        D0[:, 3 * km:3 * km + 3] = (
+            np.matmul(self.ev.phi_2_1d[j], H)
+            + np.matmul(self.ev.phi_0_1d[j], np.matmul(H, self._M[km]))
+            + np.matmul(self.ev.beta_1d[j], self._b[k, km].T)
+        )
+
+        DP1 = np.zeros((1, 3))
+        DP1[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+        return D0, DP1
+
+    def _extract_D_D0_matrices(self, k, kp, km, H, j, gauss):
+        x, y = gauss[0], 1 - gauss[0]
+
+        D = np.zeros((2, 9))
+        D[:, 3 * k:3 * k + 3] = np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[k]))
+        D[:, 3 * kp:3 * kp + 3] = (
+            np.matmul(self.ev.d_phi_1[j], H)
+            + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[kp]))
+            + np.matmul(self.ev.d_beta[j], self._b[k, kp].T)
+        )
+
+        D[:, 3 * km:3 * km + 3] = (
+            np.matmul(self.ev.d_phi_2[j], H)
+            + np.matmul(self.ev.d_phi_0[j], np.matmul(H, self._M[km]))
+            + np.matmul(self.ev.d_beta[j], self._b[k, km].T)
+        )
+
+        D0 = np.zeros((1, 3))
+        D0[0, :] = np.array([(1 - x - y), (1 + 2 * x - y), (1 - x + 2 * y)]) / 3.
+        return D, D0
 
     @ staticmethod
     def _calculate_tri_edges(vertices):
